@@ -13,8 +13,9 @@ A lightweight, feature-rich automatic logging system for PHP applications with b
 - 🔍 Detailed error and exception capturing
 - 📊 Operation-level performance analytics
 - 🔒 Sensitive data redaction
-- 📂 Automatic log rotation and cleanup
+- 📂 Automatic log rotation and cleanup (10MB max, 30-day retention)
 - 📈 Performance bottleneck identification
+- 🔄 Zero-config auto-loading support
 
 ## 📦 Installation
 
@@ -26,105 +27,135 @@ composer require ismailalbriki/php-autologger
 
 ### Manual Installation
 
-1. Download the `autologger.php` file
+1. Download the `PerformanceLogger.php` file
 2. Include it in your project:
 
 ```php
-require_once 'path/to/autologger.php';
+require_once 'path/to/PerformanceLogger.php';
 ```
 
 ## 🚀 Quick Start
+
+### Basic Usage
 
 ```php
 // Initialize the logger
 $logger = new PerformanceLogger();
 
-// Start tracking an operation
+// Track an operation
 $logger->startTimer('database_query');
-
-// Your code here...
+// Your code...
 usleep(200000); // Simulate work
-
-// End tracking and log the operation
 $logger->endTimer('database_query');
 $logger->logOperation('query', 'success', ['table' => 'users'], 'database_query');
 ```
 
+### Automatic Loading (Recommended)
+
+#### Option 1: Using php.ini (Production)
+```ini
+auto_prepend_file = "/full/path/to/PerformanceLogger.php"
+```
+
+#### Option 2: Using .htaccess (Apache)
+```apache
+php_value auto_prepend_file "/full/path/to/PerformanceLogger.php"
+```
+
+#### Option 3: Via autoload.php (Advanced)
+Create `autoload.php`:
+```php
+<?php
+require_once 'PerformanceLogger.php';
+
+$logger = new PerformanceLogger();
+
+// Auto-detect operation type
+if (!defined('OPERATION_TYPE') && !isset($_SERVER['OPERATION_TYPE'])) {
+    $_SERVER['OPERATION_TYPE'] = pathinfo($_SERVER['SCRIPT_NAME'], PATHINFO_FILENAME);
+}
+
+// Register shutdown for performance summary
+register_shutdown_function(function() use ($logger) {
+    $logger->logPerformanceSummary();
+});
+```
+Then reference this file in your `php.ini` or `.htaccess`.
+
 ## 📚 Documentation
 
-### Basic Usage
+### Core Methods
 
-#### Initialize the Logger
-```php
-$logger = new PerformanceLogger();
-```
+| Method | Description |
+|--------|-------------|
+| `startTimer($name)` | Begin tracking an operation |
+| `endTimer($name)` | Stop tracking an operation |
+| `logOperation($action, $status, $details, $timerName)` | Log a completed operation |
+| `getPerformanceReport()` | Get detailed performance metrics |
 
-#### Track Operations
-```php
-$logger->startTimer('operation_name');
-// Your code...
-$logger->endTimer('operation_name');
-$logger->logOperation('action', 'status', $details, 'operation_name');
-```
+### Automatic Logging Captures
 
-#### Automatic Logging
-The logger automatically captures:
-- All HTTP requests
-- PHP errors and warnings
-- Uncaught exceptions
+- All HTTP requests (method + URI)
+- PHP errors/warnings/notices
+- Uncaught exceptions with stack traces
 - Fatal errors
-- Performance summary at request end
+- Memory usage and peak memory
+- Request duration
 
-### Advanced Features
+### Configuration
 
-#### Performance Monitoring
-```php
-$report = $logger->getPerformanceReport();
-/*
-Returns:
-[
-    'total_time' => '0.5037 sec',
-    'operations' => [
-        'operation_name' => [
-            'duration' => '0.2012 sec',
-            'memory_usage' => '1.5 MB',
-            'start' => '2023-05-15 14:30:00',
-            'end' => '2023-05-15 14:30:00'
-        ]
-    ]
-]
-*/
-```
+Extend the class to customize:
 
-#### Configuration
-Extend the class to modify defaults:
 ```php
 class CustomLogger extends PerformanceLogger {
-    protected $maxFileSize = 5242880; // 5MB
-    protected $retentionDays = 7; // Keep logs for 7 days
+    protected $maxFileSize = 5242880; // 5MB max log size
+    protected $retentionDays = 14; // Keep logs for 14 days
+    protected $logDir = '/custom/logs/path'; // Custom log directory
 }
-```
-
-### Log File Structure
-Logs are organized by date:
-```
-/logs
-  /2023
-    /2023-05
-      log-2023-05-15.log
-      log-2023-05-15-1234567890.log (rotated)
 ```
 
 ## 🛡 Security Features
 
-- Automatically redacts sensitive data (passwords, tokens, etc.)
+- Automatic redaction of sensitive data (passwords, tokens, etc.)
 - Secure file permissions (0755)
 - Context sanitization for error traces
-- Minimal server data collection
+- Minimal server data collection (only essential headers)
+- CLI mode detection
+
+## 🌐 Log File Structure
+
+```
+/logs
+  /2023               # Year
+    /2023-05          # Month
+      log-2023-05-15.log       # Today's log
+      log-2023-05-15-1234567890.log  # Rotated log
+```
+
+Example log entry:
+```
+[2023-05-15 14:30:00] [REQUEST] POST /api/login 
+  | Context: {"Operation":"login","IP":"192.168.1.1","ResponseTime":"0.45 sec"}
+
+[2023-05-15 14:30:00] [OPERATION] DB_QUERY - SUCCESS 
+  | Context: {"table":"users","duration_sec":0.12,"memory_usage":"0.8 MB"}
+```
+
+## 🛠 Troubleshooting
+
+**Logs not appearing?**
+1. Verify file paths are absolute
+2. Check directory permissions (755 for dirs, 644 for files)
+3. Ensure PHP can write to log directory
+
+**Disable in development:**
+```php
+if (getenv('APP_ENV') === 'development') {
+    $logger->disableLogging();
+}
+```
 
 ## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -134,38 +165,31 @@ We welcome contributions! Please follow these steps:
 
 ## 📜 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+MIT License. See `LICENSE` for details.
 
 ## 📬 Contact
 
-Ismail Albriki - [@ismailalbriki](https://github.com/ismailalbriki)
-
+Ismail Albriki - [GitHub](https://github.com/ismailalbriki)  
 Project Link: [https://github.com/ismailalbriki/php-autologger](https://github.com/ismailalbriki/php-autologger)
 
-## 🙌 Acknowledgments
+---
 
-- Inspired by various PHP logging packages
-- Thanks to all open-source contributors
-- Coffee ☕ for keeping developers awake
+💡 **Pro Tip**: For best results, combine with error monitoring services and configure log rotation policies matching your storage capacity.
 ```
 
-## Key Features of This README:
+Key improvements in this version:
 
-1. **Professional Header** with badges for PHP version, license, and GitHub stars
-2. **Clear Feature List** highlighting the main capabilities
-3. **Multiple Installation Options** including Composer
-4. **Quick Start** section for immediate implementation
-5. **Comprehensive Documentation** with code examples
-6. **Security Section** to reassure users
-7. **Contribution Guidelines** to encourage community involvement
-8. **Contact Information** with your GitHub profile
-9. **Clean Structure** with emoji headings for better readability
+1. **Complete Auto-Loading Instructions** - All three methods with examples
+2. **New `autoload.php` Recommendation** - For advanced configuration
+3. **Troubleshooting Section** - Common issues and solutions
+4. **Enhanced Security Documentation** - Clearer explanation of protections
+5. **Pro Tip** - Suggested integrations and best practices
+6. **Better Structure** - More organized method documentation
+7. **Visual Examples** - Sample log structure and entries
 
-To use this README:
-
-1. Save it as `README.md` in your repository root
-2. Update the contact information if needed
-3. Add any additional sections specific to your project
-4. Commit and push to GitHub
-
-The README will automatically render nicely on GitHub and provide all necessary information for potential users and contributors.
+The README now provides everything needed for:
+- Basic implementation
+- Production deployment
+- Custom configuration
+- Troubleshooting
+- Contribution guidelines

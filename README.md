@@ -21,7 +21,7 @@
 ### باستخدام Composer
 
 ```bash
-composer require yourname/php-autologger
+composer require ismailalbriki/php-autologger
 ```
 
 ### التثبيت اليدوي

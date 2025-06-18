@@ -1,144 +1,171 @@
-# `php-autologger` - نظام تسجيل تلقائي متقدم لـ PHP
+# PHP AutoLogger 🚀
 
-![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+[![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue.svg)](https://php.net/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/ismailalbriki/php-autologger?style=social)](https://github.com/ismailalbriki/php-autologger)
 
-نظام متكامل لتسجيل الأخطاء والاستثناءات وقياس أداء التطبيقات PHP مع إمكانية تتبع العمليات والوقت المستغرق لكل عملية.
+A lightweight, feature-rich automatic logging system for PHP applications with built-in performance monitoring.
 
-## المميزات الرئيسية
+## ✨ Features
 
-- 🚀 تسجيل تلقائي للأخطاء والاستثناءات
-- ⏱ قياس الأداء والوقت المستغرق لكل عملية
-- 📊 تتبع استخدام الذاكرة
-- 🔍 كشف العمليات البطيئة تلقائياً
-- 🔒 حماية البيانات الحساسة (كلمات المرور، التوكنات)
-- 📂 تدوير السجلات وحذف القديم تلقائياً
-- 📝 تكامل سهل مع أي مشروع PHP
+- 📝 Automatic request logging
+- ⏱ Performance tracking with execution time and memory usage
+- 🔍 Detailed error and exception capturing
+- 📊 Operation-level performance analytics
+- 🔒 Sensitive data redaction
+- 📂 Automatic log rotation and cleanup
+- 📈 Performance bottleneck identification
 
-## التثبيت
+## 📦 Installation
 
-### باستخدام Composer
+### Using Composer
 
 ```bash
 composer require ismailalbriki/php-autologger
 ```
 
-### التثبيت اليدوي
+### Manual Installation
 
-1. انسخ ملف `autologger.php` لمجلد مشروعك
-2. قم بتضمينه في تطبيقك:
+1. Download the `PerformanceLogger.php` file
+2. Include it in your project:
 
 ```php
-require_once 'path/to/autologger.php';
+require_once 'path/to/PerformanceLogger.php';
 ```
 
-## الاستخدام الأساسي
-
-### البدء السريع
+## 🚀 Quick Start
 
 ```php
-// إنشاء الكائن (سيبدأ التسجيل التلقائي فوراً)
+// Initialize the logger
 $logger = new PerformanceLogger();
 
-// تعريف نوع العملية
-$_SERVER['OPERATION_TYPE'] = 'user_registration';
+// Start tracking an operation
+$logger->startTimer('database_query');
 
-// مثال لقياس عملية
-$logger->startTimer('db_operation');
-// كود العملية...
-$logger->endTimer('db_operation');
-$logger->logOperation('database', 'success', ['rows' => 5], 'db_operation');
+// Your code here...
+usleep(200000); // Simulate work
+
+// End tracking and log the operation
+$logger->endTimer('database_query');
+$logger->logOperation('query', 'success', ['table' => 'users'], 'database_query');
 ```
 
-### إعدادات متقدمة
+## 📚 Documentation
 
+### Basic Usage
+
+#### Initialize the Logger
 ```php
-// إنشاء كائن مع إعدادات مخصصة
-class MyLogger extends PerformanceLogger {
+$logger = new PerformanceLogger();
+```
+
+#### Track Operations
+```php
+$logger->startTimer('operation_name');
+// Your code...
+$logger->endTimer('operation_name');
+$logger->logOperation('action', 'status', $details, 'operation_name');
+```
+
+#### Automatic Logging
+The logger automatically captures:
+- All HTTP requests
+- PHP errors and warnings
+- Uncaught exceptions
+- Fatal errors
+- Performance summary at request end
+
+### Advanced Features
+
+#### Performance Monitoring
+```php
+$report = $logger->getPerformanceReport();
+/*
+Returns:
+[
+    'total_time' => '0.5037 sec',
+    'operations' => [
+        'operation_name' => [
+            'duration' => '0.2012 sec',
+            'memory_usage' => '1.5 MB',
+            'start' => '2023-05-15 14:30:00',
+            'end' => '2023-05-15 14:30:00'
+        ]
+    ]
+]
+*/
+```
+
+#### Configuration
+Extend the class to modify defaults:
+```php
+class CustomLogger extends PerformanceLogger {
     protected $maxFileSize = 5242880; // 5MB
-    protected $retentionDays = 14; // احتفظ بالسجلات لمدة أسبوعين
-}
-
-$logger = new MyLogger();
-```
-
-## التوثيق الكامل
-
-### الطرق الرئيسية
-
-| الطريقة | الوصف |
-|---------|-------|
-| `startTimer($name)` | بدء قياس وقت ومقدار الذاكرة لعملية |
-| `endTimer($name)` | إنهاء القياس وإحصاء الأداء |
-| `logOperation($action, $status, $details, $timerName)` | تسجيل عملية مع تفاصيلها |
-| `getPerformanceReport()` | الحصول على تقرير مفصل بالأداء |
-
-### أمثلة متقدمة
-
-**تسجيل عملية مع قياس الأداء:**
-
-```php
-$logger->startTimer('complex_calculation');
-
-// كود العملية المعقدة
-usleep(500000); // محاكاة عملية تستغرق نصف ثانية
-
-$logger->endTimer('complex_calculation');
-$logger->logOperation('calculation', 'completed', [
-    'iterations' => 1000,
-    'precision' => 0.01
-], 'complex_calculation');
-```
-
-**تسجيل خطأ مع تفاصيل:**
-
-```php
-try {
-    // كود قد يسبب خطأ
-} catch (Exception $e) {
-    $logger->logOperation('file_upload', 'failed', [
-        'error' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine()
-    ]);
+    protected $retentionDays = 7; // Keep logs for 7 days
 }
 ```
 
-## إعدادات السجل
-
-يتم حفظ السجلات تلقائياً في مسار `/logs/YYYY/YYYY-MM/log-YYYY-MM-DD.log` مع:
-
-- تدوير السجلات عند الوصول للحجم الأقصى (10MB افتراضياً)
-- حذف السجلات الأقدم من 30 يوماً (قابلة للتخصيص)
-
-## الأمان
-
-- يتم إخفاء البيانات الحساسة تلقائياً (كلمات مرور، توكنات، إلخ)
-- صلاحيات الملفات 0755 افتراضياً
-- يدعم HTTPS بشكل كامل
-
-## المساهمة
-
-المساهمات مرحب بها! يرجى اتباع الخطوات التالية:
-
-1. عمل Fork للمستودع
-2. إنشاء فرع للميزة الجديدة (`git checkout -b feature/AmazingFeature`)
-3. عمل Commit للتغييرات (`git commit -m 'Add some AmazingFeature'`)
-4. Push إلى الفرع (`git push origin feature/AmazingFeature`)
-5. فتح طلب دمج (Pull Request)
-
-## الرخصة
-
-هذا المشروع مرخص تحت رخصة MIT - انظر ملف [LICENSE](LICENSE) للتفاصيل.
-
-## الدعم
-
-إذا واجهتك أي مشكلة، يرجى فتح Issue في المستودع.
-
----
-
-✨ **نصيحة**: لمشاهدة السجلات في الوقت الحقيقي يمكنك استخدام:
-```bash
-tail -f logs/$(date +%Y)/$(date +%Y-%m)/log-$(date +%Y-%m-%d).log
+### Log File Structure
+Logs are organized by date:
 ```
+/logs
+  /2023
+    /2023-05
+      log-2023-05-15.log
+      log-2023-05-15-1234567890.log (rotated)
+```
+
+## 🛡 Security Features
+
+- Automatically redacts sensitive data (passwords, tokens, etc.)
+- Secure file permissions (0755)
+- Context sanitization for error traces
+- Minimal server data collection
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## 📬 Contact
+
+Ismail Albriki - [@ismailalbriki](https://github.com/ismailalbriki)
+
+Project Link: [https://github.com/ismailalbriki/php-autologger](https://github.com/ismailalbriki/php-autologger)
+
+## 🙌 Acknowledgments
+
+- Inspired by various PHP logging packages
+- Thanks to all open-source contributors
+- Coffee ☕ for keeping developers awake
+```
+
+## Key Features of This README:
+
+1. **Professional Header** with badges for PHP version, license, and GitHub stars
+2. **Clear Feature List** highlighting the main capabilities
+3. **Multiple Installation Options** including Composer
+4. **Quick Start** section for immediate implementation
+5. **Comprehensive Documentation** with code examples
+6. **Security Section** to reassure users
+7. **Contribution Guidelines** to encourage community involvement
+8. **Contact Information** with your GitHub profile
+9. **Clean Structure** with emoji headings for better readability
+
+To use this README:
+
+1. Save it as `README.md` in your repository root
+2. Update the contact information if needed
+3. Add any additional sections specific to your project
+4. Commit and push to GitHub
+
+The README will automatically render nicely on GitHub and provide all necessary information for potential users and contributors.

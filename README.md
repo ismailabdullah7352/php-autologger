@@ -26,11 +26,11 @@ composer require ismailalbriki/php-autologger
 
 ### Manual Installation
 
-1. Download the `PerformanceLogger.php` file
+1. Download the `autologger.php` file
 2. Include it in your project:
 
 ```php
-require_once 'path/to/PerformanceLogger.php';
+require_once 'path/to/autologger.php';
 ```
 
 ## 🚀 Quick Start

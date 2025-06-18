@@ -5,6 +5,18 @@ if (!is_dir($log_dir)) {
     mkdir($log_dir, 0755, true);
 }
 
+$year = date('Y');
+$log_dir = $log_dir . "/" . $year;
+if (!is_dir($log_dir)) {
+    mkdir($log_dir, 0755, true);
+}
+
+$month = date('Y-m');
+$log_dir = $log_dir . "/" . $month;
+if (!is_dir($log_dir)) {
+    mkdir($log_dir, 0755, true);
+}
+
 // دالة تسجيل إلى ملف السجل
 function write_log($type, $message, $context = []) {
     global $log_dir;

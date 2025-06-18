@@ -26,11 +26,11 @@ composer require ismailalbriki/php-autologger
 
 ### التثبيت اليدوي
 
-1. انسخ ملف `PerformanceLogger.php` لمجلد مشروعك
+1. انسخ ملف `autologger.php` لمجلد مشروعك
 2. قم بتضمينه في تطبيقك:
 
 ```php
-require_once 'path/to/PerformanceLogger.php';
+require_once 'path/to/autologger.php';
 ```
 
 ## الاستخدام الأساسي

@@ -12,6 +12,7 @@ class PerformanceLogger {
     private $currentLogFile;
     private $maxFileSize = 10485760; // 10MB
     private $retentionDays = 30; // 30 يوم
+    private $loggingEnabled = true;
     
     // معلومات الطلب
     private $operationType;
@@ -83,6 +84,35 @@ class PerformanceLogger {
         $this->operationType = $_SERVER['OPERATION_TYPE'] ?? (defined('OPERATION_TYPE') ? OPERATION_TYPE : 'unknown');
     }
 
+        /**
+     * Enable or disable logging
+     * @param bool $enabled
+     */
+    public function setLoggingEnabled(bool $enabled) {
+        $this->loggingEnabled = $enabled;
+    }
+
+    /**
+     * Disable logging temporarily
+     */
+    public function disableLogging() {
+        $this->setLoggingEnabled(false);
+    }
+
+    /**
+     * Enable logging
+     */
+    public function enableLogging() {
+        $this->setLoggingEnabled(true);
+    }
+
+    /**
+     * Check if logging is enabled
+     */
+    public function isLoggingEnabled(): bool {
+        return $this->loggingEnabled;
+    }
+    
     /**
      * تسجيل معالجي الأخطاء
      */
@@ -173,6 +203,9 @@ class PerformanceLogger {
      * تسجيل العملية مع الأداء
      */
     public function logOperation($action, $status, $details = [], $timerName = null) {
+        if (!$this->loggingEnabled) {
+            return;
+        }
         $message = strtoupper($action) . ' - ' . strtoupper($status);
         
         if ($timerName && isset($this->timers[$timerName])) {
@@ -189,6 +222,8 @@ class PerformanceLogger {
      * تسجيل طلب HTTP
      */
     private function logRequest() {
+        if (!$this->loggingEnabled) return;
+        
         $sanitizedServer = $this->sanitizeServerData($_SERVER);
         $requestTime = round(microtime(true) - $this->requestStartTime, 4);
         
@@ -205,6 +240,7 @@ class PerformanceLogger {
      * تسجيل ملخص الأداء
      */
     private function logPerformanceSummary() {
+        if (!$this->loggingEnabled) return;
         $totalTime = round(microtime(true) - $this->requestStartTime, 4);
         $memoryPeak = $this->formatMemory(memory_get_peak_usage());
         
@@ -220,6 +256,9 @@ class PerformanceLogger {
      * كتابة السجل
      */
     private function writeLog($type, $message, $context = []) {
+        if (!$this->loggingEnabled) {
+            return;
+        }
         $time = date('Y-m-d H:i:s');
         $contextStr = $context ? ' | Context: ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '';
         $logEntry = "[$time] [$type] $message$contextStr" . PHP_EOL;

@@ -1,0 +1,8 @@
+[2025-06-18 19:22:10] [REQUEST] POST /api/install-plugin.php | Context: {"IP":"127.0.0.1","UserAgent":"Mozilla/5.0","Time":"19:22:10"}
+[2025-06-18 19:22:11] [PHP_ERROR] Undefined variable $slug in /var/www/html/install-plugin.php on line 13 | Context: {"errno":8}
+[2025-06-18 19:22:11] [EXCEPTION] Plugin not found | Context: {"file":"/install-plugin.php","line":28,"trace":"#0 ..."}
+[2025-06-18 19:22:12] [FATAL_ERROR] Call to undefined function update_plugin() in /install-plugin.php on line 42
+
+[2025-06-18 19:50:33] [REQUEST] POST /api/register-user.php | Context: {"Operation":"register_user", ...}
+[2025-06-18 19:50:33] [OPERATION] SAVE_USER - SUCCESS | Context: {"user_email":"test@example.com"}
+[2025-06-18 19:50:34] [OPERATION] SEND_VERIFICATION_EMAIL - SUCCESS | Context: {"email":"test@example.com"}
